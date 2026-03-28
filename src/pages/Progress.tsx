@@ -166,22 +166,8 @@ export function Progress() {
       timestamp: new Date().toISOString(),
     };
 
-    if (activePlan) {
-      // Save to localStorage
-      const newWeightLog = {
-        id: `weight-${Date.now()}`,
-        ...measurementData,
-        createdAt: new Date().toISOString()
-      };
-      
-      const updatedLogs = [...trackingData.weightLogs, newWeightLog];
-      setTrackingData({ ...trackingData, weightLogs: updatedLogs });
-      
-      // Also save to localStorage for persistence
-      localStorage.setItem('smartgain_weight_logs', JSON.stringify(updatedLogs));
-    } else {
-      await logMeasurement(measurementData);
-    }
+    // Always use the mutation so React Query handles state updates correctly
+    await logMeasurement(measurementData);
   };
 
   // Use localStorage data if available, otherwise use API data

@@ -139,9 +139,7 @@ const WorkoutPlan = () => {
     );
   }
 
-  // Format dates for display
-  const startDate = format(parseISO(workoutPlan.startDate), 'MMM d, yyyy');
-  const endDate = format(parseISO(workoutPlan.endDate), 'MMM d, yyyy');
+
 
   // Display workouts organized by day and muscle group (Req 11.2)
   return (
@@ -150,10 +148,6 @@ const WorkoutPlan = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Workout Plan</h1>
-            <p className="text-muted-foreground mt-1 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              {startDate} - {endDate}
-            </p>
           </div>
           <Button variant="outline" onClick={() => refetch()}>
             Refresh Plan
@@ -173,7 +167,7 @@ const WorkoutPlan = () => {
             <TabsContent key={dayIndex} value={`day-${dayIndex}`} className="space-y-6">
               <div className="text-center">
                 <h2 className="text-2xl font-semibold">
-                  {format(parseISO(dailyWorkout.date), 'EEEE, MMMM d')}
+                  {format(parseISO(dailyWorkout.date), 'EEEE')}
                 </h2>
                 <div className="flex items-center justify-center gap-4 mt-2 text-sm text-muted-foreground">
                   <span>Target: {dailyWorkout.muscleGroup}</span>
@@ -183,16 +177,30 @@ const WorkoutPlan = () => {
               </div>
 
               {/* Exercise Cards - Show exercise details (sets, reps, rest) (Req 11.3) */}
-              <div className="space-y-4">
-                {dailyWorkout.exercises.map((exercise, exerciseIndex) => (
-                  <ExerciseCard 
-                    key={exerciseIndex}
-                    exercise={exercise} 
-                    date={dailyWorkout.date}
-                    exerciseIndex={exerciseIndex}
-                  />
-                ))}
-              </div>
+              {dailyWorkout.isRestDay || dailyWorkout.exercises.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-8 mt-4 rounded-xl border border-dashed text-center bg-muted/20">
+                  <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center mb-4 text-secondary">
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Rest & Recovery Day</h3>
+                  <p className="text-muted-foreground max-w-md">
+                    Take it easy today. Focus on light stretching, hydration, and letting your muscles rebuild.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {dailyWorkout.exercises.map((exercise, exerciseIndex) => (
+                    <ExerciseCard 
+                      key={exerciseIndex}
+                      exercise={exercise} 
+                      date={dailyWorkout.date}
+                      exerciseIndex={exerciseIndex}
+                    />
+                  ))}
+                </div>
+              )}
             </TabsContent>
           ))}
         </Tabs>

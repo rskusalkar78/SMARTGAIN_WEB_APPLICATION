@@ -22,6 +22,7 @@ type Step = 1 | 2 | 3;
 
 export function Calculator({ onCalculate, onBack, isLoading = false, error = null }: CalculatorProps) {
   const [step, setStep] = useState<Step>(1);
+  const [heightInput, setHeightInput] = useState<string>('');
   const [formData, setFormData] = useState<Partial<UserData>>({
     gender: 'male',
     activityLevel: 'moderate',
@@ -170,12 +171,20 @@ export function Calculator({ onCalculate, onBack, isLoading = false, error = nul
                 <Label htmlFor="height">Height</Label>
                 <Input
                   id="height"
-                  type="number"
-                  placeholder="Enter your height"
+                  type="text"
+                  placeholder="e.g. 5.8 (feet.inches)"
                   icon={<Ruler className="w-4 h-4" />}
-                  suffix="cm"
-                  value={formData.height || ''}
-                  onChange={(e) => updateField('height', parseInt(e.target.value) || 0)}
+                  suffix="ft.in"
+                  value={heightInput}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.]/g, '');
+                    setHeightInput(val);
+                    const parts = val.split('.');
+                    const feet = parseInt(parts[0]) || 0;
+                    const inches = parts[1] ? parseInt(parts[1]) : 0;
+                    const totalInches = (feet * 12) + inches;
+                    updateField('height', Math.round(totalInches * 2.54));
+                  }}
                 />
               </div>
 

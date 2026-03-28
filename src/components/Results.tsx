@@ -60,7 +60,7 @@ export function Results({ userData, results, workoutPlan, onReset, onRecalculate
 
       // Save to localStorage (backend integration will come later)
       localStorage.setItem('smartgain_active_plan', JSON.stringify(planData));
-      
+
       // If user is not authenticated, create a guest session
       if (!isAuthenticated) {
         // Store guest flag

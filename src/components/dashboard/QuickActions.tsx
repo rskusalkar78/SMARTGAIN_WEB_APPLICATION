@@ -26,7 +26,7 @@ const QuickActions = () => {
       title: 'Log Weight',
       description: 'Update measurements',
       icon: Scale,
-      href: '/app/progress/log',
+      href: '/app/progress',
       variant: 'outline' as const,
     },
   ];

@@ -30,7 +30,82 @@ export const useDashboard = () => {
 
   const query = useQuery<DashboardData>({
     queryKey: dashboardKeys.detail(),
-    queryFn: dashboardApi.getDashboard,
+    queryFn: async () => {
+      // Check for guest mode
+      const isGuestMode = localStorage.getItem('smartgain_guest_mode') === 'true';
+      if (isGuestMode) {
+        const planDataStr = localStorage.getItem('smartgain_active_plan');
+        if (planDataStr) {
+          try {
+            const planData = JSON.parse(planDataStr);
+            const { userData, results, workoutPlan } = planData;
+            
+            const weightLogsStr = localStorage.getItem('smartgain_weight_logs');
+            const weightLogs = weightLogsStr ? JSON.parse(weightLogsStr) : [];
+            const weeklyProgress = weightLogs.length > 0 ? weightLogs : [
+              {
+                id: 'initial',
+                userId: 'guest',
+                weight: userData?.currentWeight || 0,
+                timestamp: planData.startDate || new Date().toISOString(),
+                createdAt: planData.startDate || new Date().toISOString(),
+              }
+            ];
+            
+            return {
+              user: {
+                id: 'guest',
+                name: 'Guest User',
+                email: 'guest@smartgain.app',
+                goals: {
+                  currentWeight: userData?.currentWeight || 0,
+                  targetWeight: (userData?.currentWeight || 0) + (userData?.targetWeightGain || 0),
+                  weeklyGainGoal: results?.weeklyGain || 0,
+                  dailyCalories: results?.dailyCalories || 0,
+                  dailyProtein: results?.protein || 0,
+                  dailyCarbs: results?.carbs || 0,
+                  dailyFats: results?.fats || 0,
+                },
+                preferences: {
+                  activityLevel: userData?.activityLevel || 'moderate',
+                  dietaryRestrictions: [],
+                  measurementUnit: 'metric',
+                },
+                createdAt: planData.startDate || new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+              todayStats: {
+                caloriesConsumed: 0,
+                caloriesTarget: results?.dailyCalories || 2500,
+                proteinConsumed: 0,
+                proteinTarget: results?.protein || 150,
+                mealsLogged: 0,
+                workoutsCompleted: 0,
+              },
+              weeklyProgress,
+              upcomingWorkouts: workoutPlan?.split
+                ?.filter((d: any) => !d.isRestDay)
+                ?.slice(0, 3)
+                ?.map((d: any, i: number) => {
+                  const date = new Date();
+                  date.setDate(date.getDate() + i);
+                  return {
+                    date: date.toISOString(),
+                    muscleGroup: d.focus,
+                    exercises: d.exercises || [],
+                    estimatedDuration: 45
+                  };
+                }) || [],
+            } as DashboardData;
+          } catch (e) {
+            console.error('Failed to parse guest plan data', e);
+          }
+        }
+      }
+      
+      // If not guest mode, fetch from API
+      return dashboardApi.getDashboard();
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
     refetchOnWindowFocus: true, // Refetch when window regains focus (Req 12.5)

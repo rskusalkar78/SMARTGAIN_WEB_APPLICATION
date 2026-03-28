@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { workoutApi } from '@/api/endpoints/workout';
-import { dashboardApi } from '@/api/endpoints/dashboard';
+import { useDashboard } from '@/hooks/useDashboard';
 import { WorkoutLogger } from '@/components/features/WorkoutLogger';
 import { useLogWorkoutMutation } from '@/hooks/useWorkoutLogging';
 import { WorkoutLogData, WorkoutLog } from '@/api/types';
@@ -22,13 +22,7 @@ export function Workout() {
     data: dashboardData,
     isLoading: isDashboardLoading,
     error: dashboardError,
-  } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: async () => {
-      const response = await dashboardApi.getDashboard();
-      return response;
-    },
-  });
+  } = useDashboard();
 
   // Fetch weekly workout logs
   const {
@@ -38,6 +32,13 @@ export function Workout() {
   } = useQuery({
     queryKey: ['workoutLogs', 'weekly', weekStart],
     queryFn: async () => {
+      // Check for guest mode
+      const isGuestMode = localStorage.getItem('smartgain_guest_mode') === 'true';
+      if (isGuestMode) {
+        const guestLogs = localStorage.getItem('smartgain_guest_workouts');
+        return guestLogs ? JSON.parse(guestLogs) : [];
+      }
+      
       // Get logs from the start of the week
       const response = await workoutApi.getWorkoutLogs(weekStart);
       return response;
