@@ -72,7 +72,7 @@ const Dashboard = () => {
           <TodaySummary stats={data.todayStats} />
           <QuickActions />
         </div>
-        <WeeklyProgress weightLogs={data.weeklyProgress} />
+        <WeeklyProgress weightLogs={data.weeklyProgress} targetWeight={data.user.goals.targetWeight} />
       </div>
     </AppLayout>
   );
