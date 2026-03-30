@@ -47,11 +47,83 @@ export const nutritionApi = {
     });
   },
 
-  /**
-   * Get the user's current meal plan
-   * @returns Current meal plan with daily meals
-   */
-  getMealPlan: (): Promise<MealPlan> => {
+  getMealPlan: async (): Promise<MealPlan> => {
+    const isGuestMode = localStorage.getItem('smartgain_guest_mode') === 'true';
+    if (isGuestMode) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const planStr = localStorage.getItem('smartgain_active_plan');
+      if (!planStr) throw new Error('No active plan found. Please generate one from the calculator first.');
+      
+      const planData = JSON.parse(planStr);
+      // Results might be undefined if old data shape; handle gracefully
+      const results = planData.results || { dailyCalories: 2500, protein: 150, carbs: 300, fats: 80 };
+      const rawStartDate = new Date(planData.startDate || new Date());
+      
+      const bCal = Math.round(results.dailyCalories * 0.25);
+      const lCal = Math.round(results.dailyCalories * 0.35);
+      const dCal = Math.round(results.dailyCalories * 0.30);
+      const sCal = Math.round(results.dailyCalories * 0.10);
+
+      const bProt = Math.round(results.protein * 0.25);
+      const lProt = Math.round(results.protein * 0.35);
+      const dProt = Math.round(results.protein * 0.30);
+      const sProt = Math.round(results.protein * 0.10);
+
+      const bCarb = Math.round(results.carbs * 0.25);
+      const lCarb = Math.round(results.carbs * 0.35);
+      const dCarb = Math.round(results.carbs * 0.30);
+      const sCarb = Math.round(results.carbs * 0.10);
+
+      const bFat = Math.round(results.fats * 0.25);
+      const lFat = Math.round(results.fats * 0.35);
+      const dFat = Math.round(results.fats * 0.30);
+      const sFat = Math.round(results.fats * 0.10);
+      
+      // Map out 7 days of meals
+      const dailyMealsList = Array.from({ length: 7 }).map((_, i) => {
+        const targetDate = new Date(rawStartDate);
+        targetDate.setDate(targetDate.getDate() + i);
+        
+        return {
+          date: targetDate.toISOString().split('T')[0],
+          breakfast: {
+            name: 'Oatmeal with Protein & Berries',
+            ingredients: ['1 cup rolled oats', '1 scoop whey protein', '1/2 cup berries', '1 cup milk'],
+            instructions: 'Cook oats with milk, stir in protein powder, and top with fresh berries.',
+            calories: bCal, protein: bProt, carbs: bCarb, fats: bFat
+          },
+          lunch: {
+            name: 'Chicken & Sweet Potato Bowl',
+            ingredients: ['200g chicken breast', '200g sweet potato', '1 cup broccoli', '1 tbsp olive oil'],
+            instructions: 'Roast sweet potato and broccoli. Grill chicken. Combine in a bowl with olive oil.',
+            calories: lCal, protein: lProt, carbs: lCarb, fats: lFat
+          },
+          dinner: {
+            name: 'Salmon with Rice',
+            ingredients: ['150g salmon fillet', '1.5 cups jasmine rice', 'Asparagus spears', 'Lemon juice'],
+            instructions: 'Bake salmon with lemon. Steam asparagus. Serve with cooked jasmine rice.',
+            calories: dCal, protein: dProt, carbs: dCarb, fats: dFat
+          },
+          snacks: [
+            {
+              name: 'Greek Yogurt & Almonds',
+              ingredients: ['1 cup Greek yogurt', '30g almonds', '1 tbsp honey'],
+              instructions: 'Mix honey into yogurt and top with almonds.',
+              calories: sCal, protein: sProt, carbs: sCarb, fats: sFat
+            }
+          ]
+        };
+      });
+
+      return {
+        id: 'guest-meal-plan',
+        userId: 'guest',
+        startDate: rawStartDate.toISOString(),
+        endDate: new Date(rawStartDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        meals: dailyMealsList,
+        createdAt: rawStartDate.toISOString()
+      };
+    }
     return client.get<MealPlan>('/nutrition/meal-plan');
   },
 
@@ -59,7 +131,9 @@ export const nutritionApi = {
    * Generate a new meal plan based on user goals
    * @returns Newly generated meal plan
    */
-  generateMealPlan: (): Promise<MealPlan> => {
+  generateMealPlan: async (): Promise<MealPlan> => {
+    const isGuestMode = localStorage.getItem('smartgain_guest_mode') === 'true';
+    if (isGuestMode) throw new Error('Guest users must generate a new plan from the calculators.');
     return client.post<MealPlan>('/nutrition/meal-plan/generate');
   },
 };

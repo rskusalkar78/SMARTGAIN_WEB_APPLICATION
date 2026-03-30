@@ -94,10 +94,6 @@ const MealPlan = () => {
     );
   }
 
-  // Format dates for display
-  const startDate = format(parseISO(mealPlan.startDate), 'MMM d, yyyy');
-  const endDate = format(parseISO(mealPlan.endDate), 'MMM d, yyyy');
-
   // Display meals organized by day and meal type (Req 10.2)
   return (
     <AppLayout>
@@ -105,10 +101,6 @@ const MealPlan = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Meal Plan</h1>
-            <p className="text-muted-foreground mt-1 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              {startDate} - {endDate}
-            </p>
           </div>
           <Button variant="outline" onClick={() => refetch()}>
             Refresh Plan
@@ -128,7 +120,7 @@ const MealPlan = () => {
             <TabsContent key={dayIndex} value={`day-${dayIndex}`} className="space-y-6">
               <div className="text-center">
                 <h2 className="text-2xl font-semibold">
-                  {format(parseISO(dailyMeals.date), 'EEEE, MMMM d')}
+                  {format(parseISO(dailyMeals.date), 'EEEE')}
                 </h2>
               </div>
 
