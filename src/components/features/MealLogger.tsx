@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -47,6 +48,15 @@ const mealLogSchema = z.object({
     .number()
     .nonnegative('Fat cannot be negative')
     .default(0),
+  waterMl: z.coerce
+    .number()
+    .nonnegative('Water intake cannot be negative')
+    .default(0),
+  sodiumMg: z.coerce
+    .number()
+    .nonnegative('Sodium cannot be negative')
+    .default(0),
+  notes: z.string().max(300, 'Notes cannot exceed 300 characters').optional().default(''),
 });
 
 type MealLogFormData = z.infer<typeof mealLogSchema>;
@@ -78,6 +88,9 @@ export function MealLogger({
       protein: 0,
       carbs: 0,
       fats: 0,
+      waterMl: 0,
+      sodiumMg: 0,
+      notes: '',
     },
   });
 
@@ -287,6 +300,68 @@ export function MealLogger({
                 />
               </div>
 
+              {/* Workout Support Intake */}
+              <div className="space-y-3">
+                <p className="text-sm font-semibold">Workout Support Intake</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="waterMl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Water (ml)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 500"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>Helps hydration around workouts</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="sodiumMg"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sodium (mg)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 400"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>Useful for training performance</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Optional: pre-workout, post-workout, supplements, digestion notes..."
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               {/* Form Actions */}
               <div className="flex gap-3 pt-4">
                 <Button type="submit" disabled={isLoading} className="flex-1">
@@ -306,6 +381,7 @@ export function MealLogger({
               </div>
             </form>
           </Form>
+
         </CardContent>
       </Card>
     </div>
