@@ -54,7 +54,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 // Profile Component
 // ============================================================================
 
-const Profile = () => {
+export const Profile = () => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
 

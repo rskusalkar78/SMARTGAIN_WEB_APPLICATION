@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { progressApi } from '@/api/endpoints/progress';
 import { nutritionApi } from '@/api/endpoints/nutrition';
@@ -18,70 +18,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress as ProgressBar } from '@/components/ui/progress';
-import { subDays, format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, addDays, startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
 
 export function Progress() {
   const { user } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
-  const [activePlan, setActivePlan] = useState<any>(null);
-  const [trackingData, setTrackingData] = useState<any>({
-    weightLogs: [],
-    caloriesLogs: [],
-    workoutLogs: [],
-    consistency: {
-      workouts: 0,
-      nutrition: 0,
-      overall: 0
-    }
+
+  // Load plan and all real logged data synchronously (lazy initializer prevents null on first render)
+  const [activePlan] = useState<any>(() => {
+    try {
+      const raw = localStorage.getItem('smartgain_active_plan');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
   });
 
-  // Load active plan from localStorage
-  useEffect(() => {
-    const planData = localStorage.getItem('smartgain_active_plan');
-    if (planData) {
-      const plan = JSON.parse(planData);
-      setActivePlan(plan);
-      
-      // Initialize tracking data with sample data for demonstration
-      const startDate = new Date(plan.startDate);
-      const daysSinceStart = differenceInDays(new Date(), startDate);
-      
-      // Generate sample weight logs
-      const weightLogs = Array.from({ length: Math.min(daysSinceStart, 30) }, (_, i) => ({
-        id: `weight-${i}`,
-        weight: plan.userData.currentWeight + (i * 0.1),
-        timestamp: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-        createdAt: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd')
-      }));
-
-      // Generate sample calorie logs
-      const caloriesLogs = Array.from({ length: Math.min(daysSinceStart, 30) }, (_, i) => ({
-        date: format(subDays(new Date(), 30 - i), 'yyyy-MM-dd'),
-        calories: plan.results.dailyCalories + (Math.random() * 200 - 100),
-        target: plan.results.dailyCalories
-      }));
-
-      // Generate sample workout logs
-      const workoutLogs = Array.from({ length: Math.min(daysSinceStart, 20) }, (_, i) => ({
-        id: `workout-${i}`,
-        date: format(subDays(new Date(), 30 - i * 1.5), 'yyyy-MM-dd'),
-        workoutType: plan.workoutPlan.split[i % plan.workoutPlan.split.length].focus,
-        duration: 45 + Math.random() * 30,
-        completed: true
-      }));
-
-      setTrackingData({
-        weightLogs,
-        caloriesLogs,
-        workoutLogs,
-        consistency: {
-          workouts: Math.round((workoutLogs.length / (daysSinceStart || 1)) * 100),
-          nutrition: Math.round(85 + Math.random() * 10),
-          overall: Math.round(80 + Math.random() * 15)
-        }
-      });
-    }
-  }, []);
 
   // Calculate start date based on time range
   const getDateRangeParams = (range: TimeRange): DateRangeParams => {
@@ -98,7 +48,7 @@ export function Progress() {
   } = useQuery({
     queryKey: ['weightLogs', timeRange],
     queryFn: () => progressApi.getWeightLogs(dateParams),
-    enabled: !activePlan, // Only fetch if no active plan in localStorage
+    staleTime: 1000 * 60, // 1 minute
   });
 
   // Fetch meal logs
@@ -108,7 +58,7 @@ export function Progress() {
   } = useQuery({
     queryKey: ['mealLogs', timeRange],
     queryFn: () => nutritionApi.getMealLogs(dateParams),
-    enabled: !activePlan,
+    staleTime: 1000 * 60,
   });
 
   // Fetch workout logs
@@ -118,7 +68,7 @@ export function Progress() {
   } = useQuery({
     queryKey: ['workoutLogs', timeRange],
     queryFn: () => workoutApi.getWorkoutLogs(dateParams),
-    enabled: !activePlan,
+    staleTime: 1000 * 60,
   });
 
   // Fetch workout plan for completion rate calculation
@@ -129,7 +79,6 @@ export function Progress() {
     queryKey: ['workoutPlan'],
     queryFn: () => workoutApi.getWorkoutPlan(),
     retry: false,
-    enabled: !activePlan,
   });
 
   // Fetch latest weight for comparison (for the logger)
@@ -143,7 +92,6 @@ export function Progress() {
       const response = await progressApi.getLatestWeight();
       return response;
     },
-    enabled: !activePlan,
   });
 
   // Measurement logging mutation
@@ -172,32 +120,79 @@ export function Progress() {
     await logMeasurement(measurementData);
   };
 
-  // Use localStorage data if available, otherwise use API data
-  const displayWeightLogs = activePlan ? trackingData.weightLogs : (weightLogs || []);
-  const displayMealLogs = activePlan ? trackingData.caloriesLogs : (mealLogs || []);
-  const displayWorkoutLogs = activePlan ? trackingData.workoutLogs : (workoutLogs || []);
+  const displayWeightLogs: any[] = Array.isArray(weightLogs) ? weightLogs : [];
+ 
+  // Normalize meal logs — ensure every log has a timestamp
+  const displayMealLogs: any[] = (Array.isArray(mealLogs) ? mealLogs : []).map((m: any) => ({
+    ...m,
+    timestamp: m.timestamp || m.createdAt || new Date().toISOString(),
+  }));
+ 
+  // Normalize workout logs — ensure every log has a timestamp
+  const displayWorkoutLogs: any[] = (Array.isArray(workoutLogs) ? workoutLogs : []).map((w: any) => ({
+    ...w,
+    timestamp: w.timestamp || (w.date ? w.date + 'T00:00:00.000Z' : new Date().toISOString()),
+  }));
+
   const displayWorkoutPlan = activePlan ? activePlan.workoutPlan : workoutPlan;
 
-  // Calculate progress metrics
-  const currentWeight = displayWeightLogs.length > 0 
-    ? displayWeightLogs[displayWeightLogs.length - 1].weight 
-    : activePlan?.userData.currentWeight || 0;
-  
-  const targetWeight = activePlan 
-    ? activePlan.userData.currentWeight + activePlan.userData.targetWeightGain
-    : user?.goals?.targetWeight || 0;
-  
-  const weightGained = activePlan 
-    ? currentWeight - activePlan.userData.currentWeight
-    : 0;
-  
-  const progressPercentage = activePlan
-    ? Math.min(100, (weightGained / activePlan.userData.targetWeightGain) * 100)
+  // Calculate progress metrics — use safe optional chaining throughout
+  const startingWeight = activePlan?.userData?.currentWeight || 0;
+  const targetWeightGoal = activePlan?.userData?.targetWeight || 0;
+  // Weight gain goal = how much they want to gain total
+  const totalWeightGainGoal = Math.max(0.1, targetWeightGoal - startingWeight);
+
+  const currentWeight = displayWeightLogs.length > 0
+    ? displayWeightLogs[displayWeightLogs.length - 1].weight
+    : startingWeight;
+
+  const weightGained = Math.max(0, currentWeight - startingWeight);
+
+  const progressPercentage = totalWeightGainGoal > 0
+    ? Math.min(100, (weightGained / totalWeightGainGoal) * 100)
     : 0;
 
-  const daysSinceStart = activePlan
-    ? differenceInDays(new Date(), new Date(activePlan.startDate))
+  const daysSinceStart = activePlan?.startDate
+    ? Math.max(0, differenceInDays(new Date(), new Date(activePlan.startDate)))
     : 0;
+
+  const totalPlanDays = (activePlan?.userData?.timeframe || 12) * 7;
+  const dailyCaloriesTarget = activePlan?.results?.dailyCalories || user?.goals?.dailyCalories || 2500;
+
+  // --- New Weekly Performance Calculations ---
+  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
+  const currentWeekEnd = endOfWeek(new Date(), { weekStartsOn: 1 }); // Sunday
+  
+  const weeklyWorkouts = displayWorkoutLogs.filter(w => {
+    const d = parseISO(w.timestamp);
+    return isWithinInterval(d, { start: currentWeekStart, end: currentWeekEnd });
+  });
+  
+  const plannedWorkoutsPerWeek = activePlan?.workoutPlan?.daysPerWeek || user?.goals?.weeklyGainGoal ? 4 : 3;
+  const sessionsLabel = `${weeklyWorkouts.length} of ${plannedWorkoutsPerWeek} sessions`;
+
+  const weekDayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const weekDays = weekDayNames.map((name, i) => {
+    const day = addDays(currentWeekStart, i);
+    const dateStr = format(day, 'yyyy-MM-dd');
+    const hasWorkout = weeklyWorkouts.some(w => format(parseISO(w.timestamp), 'yyyy-MM-dd') === dateStr);
+    return { name, dateStr, hasWorkout };
+  });
+
+  const nutritionWeekDays = weekDayNames.map((name, i) => {
+    const day = addDays(currentWeekStart, i);
+    const dateStr = format(day, 'yyyy-MM-dd');
+    const dailySum = displayMealLogs
+      .filter(m => format(parseISO(m.timestamp), 'yyyy-MM-dd') === dateStr)
+      .reduce((acc: number, m: any) => acc + (m.calories || 0), 0);
+    const isGoalMet = dailySum >= dailyCaloriesTarget * 0.9;
+    return { name, dateStr, dailySum, isGoalMet };
+  });
+
+  const avgCaloriesThisWeek = displayMealLogs.filter(m => {
+    const d = parseISO(m.timestamp);
+    return isWithinInterval(d, { start: currentWeekStart, end: currentWeekEnd });
+  }).reduce((acc: number, m: any) => acc + (m.calories || 0), 0) / (Math.max(1, differenceInDays(new Date(), currentWeekStart) + 1));
 
   return (
     <div className="space-y-8 pb-10">
@@ -222,7 +217,7 @@ export function Progress() {
             <CardContent>
               <div className="text-2xl font-bold">{weightGained.toFixed(1)} kg</div>
               <p className="text-xs text-muted-foreground">
-                of {activePlan.userData.targetWeightGain} kg goal
+                of {totalWeightGainGoal.toFixed(1)} kg goal
               </p>
               <ProgressBar value={progressPercentage} className="mt-2" />
               <p className="text-xs text-muted-foreground mt-1">
@@ -231,33 +226,59 @@ export function Progress() {
             </CardContent>
           </Card>
 
-          {/* Workout Consistency Card */}
+          {/* Workout Performance Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Workout Consistency</CardTitle>
+              <CardTitle className="text-sm font-medium">Workout Performance</CardTitle>
               <Dumbbell className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{trackingData.consistency.workouts}%</div>
-              <p className="text-xs text-muted-foreground">
-                {displayWorkoutLogs.length} workouts completed
+              <div className="text-2xl font-bold">{sessionsLabel}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Completed this week
               </p>
-              <ProgressBar value={trackingData.consistency.workouts} className="mt-2" />
+              <div className="flex justify-between mt-4">
+                {weekDays.map((day, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground font-medium">{day.name}</span>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] transition-all
+                      ${day.hasWorkout 
+                        ? 'bg-primary text-primary-foreground shadow-sm' 
+                        : 'bg-muted/30 text-muted-foreground border border-dashed border-muted'}`}
+                    >
+                      {day.hasWorkout ? '✓' : ''}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Nutrition Consistency Card */}
+          {/* Nutrition Performance Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Nutrition Tracking</CardTitle>
+              <CardTitle className="text-sm font-medium">Nutrition Performance</CardTitle>
               <Flame className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{trackingData.consistency.nutrition}%</div>
-              <p className="text-xs text-muted-foreground">
-                Avg {activePlan.results.dailyCalories} kcal/day
+              <div className="text-2xl font-bold">{Math.round(avgCaloriesThisWeek).toLocaleString()} kcal</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Daily average this week
               </p>
-              <ProgressBar value={trackingData.consistency.nutrition} className="mt-2" />
+              <div className="flex justify-between mt-4">
+                {nutritionWeekDays.map((day, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground font-medium">{day.name}</span>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] transition-all
+                      ${day.isGoalMet 
+                        ? 'bg-orange-500 text-white shadow-sm' 
+                        : 'bg-muted/30 text-muted-foreground border border-dashed border-muted'}`}
+                    >
+                      {day.isGoalMet ? '🔥' : ''}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -270,10 +291,10 @@ export function Progress() {
             <CardContent>
               <div className="text-2xl font-bold">{daysSinceStart}</div>
               <p className="text-xs text-muted-foreground">
-                of {activePlan.userData.timeframe * 7} days
+                of {totalPlanDays} days
               </p>
               <ProgressBar 
-                value={(daysSinceStart / (activePlan.userData.timeframe * 7)) * 100} 
+                value={(daysSinceStart / totalPlanDays) * 100} 
                 className="mt-2" 
               />
             </CardContent>
@@ -281,47 +302,6 @@ export function Progress() {
         </div>
       )}
 
-      {/* Overall Consistency Card */}
-      {activePlan && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-primary" />
-              Overall Consistency Score
-            </CardTitle>
-            <CardDescription>
-              Your commitment to the plan across all areas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-3xl font-bold">{trackingData.consistency.overall}%</span>
-                <span className="text-sm text-muted-foreground">
-                  {trackingData.consistency.overall >= 80 ? '🔥 Excellent!' : 
-                   trackingData.consistency.overall >= 60 ? '👍 Good!' : 
-                   '💪 Keep going!'}
-                </span>
-              </div>
-              <ProgressBar value={trackingData.consistency.overall} className="h-3" />
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Workouts</p>
-                  <p className="font-semibold">{trackingData.consistency.workouts}%</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Nutrition</p>
-                  <p className="font-semibold">{trackingData.consistency.nutrition}%</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Measurements</p>
-                  <p className="font-semibold">{displayWeightLogs.length > 0 ? '✓' : '○'}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
@@ -337,7 +317,7 @@ export function Progress() {
               <WeightChart data={displayWeightLogs} isLoading={isLoadingWeight && !activePlan} />
               <CalorieChart
                 data={displayMealLogs}
-                calorieTarget={activePlan?.results.dailyCalories || user?.goals?.dailyCalories || 2500}
+                calorieTarget={(activePlan?.results?.dailyCalories) || user?.goals?.dailyCalories || 2500}
                 isLoading={isLoadingMeals && !activePlan}
               />
             </div>
@@ -383,8 +363,8 @@ export function Progress() {
         )}
 
         <MeasurementLogger
-          previousMeasurement={activePlan ? trackingData.weightLogs[trackingData.weightLogs.length - 1] : previousMeasurement}
-          isLoadingPrevious={isLoadingPrevious && !activePlan}
+          previousMeasurement={activePlan ? (displayWeightLogs?.[displayWeightLogs.length - 1]) : previousMeasurement}
+          isLoadingPrevious={isLoadingPrevious}
           isLoading={isLoggingMeasurement}
           onSubmit={handleSubmit}
         />

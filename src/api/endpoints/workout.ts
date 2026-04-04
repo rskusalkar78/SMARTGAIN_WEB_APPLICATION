@@ -26,13 +26,26 @@ export const workoutApi = {
    * @param params - Date filter or range parameters
    * @returns Array of workout logs
    */
-  getWorkoutLogs: (params?: string | DateRangeParams): Promise<WorkoutLog[]> => {
+  getWorkoutLogs: async (params?: string | DateRangeParams): Promise<WorkoutLog[]> => {
+    const isGuestMode = localStorage.getItem('smartgain_guest_mode') === 'true';
+    if (isGuestMode) {
+      const raw = localStorage.getItem('smartgain_guest_workouts');
+      if (!raw) return [];
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? (parsed as WorkoutLog[]) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
     // Handle legacy single date string or new object params
     const queryParams = typeof params === 'string' ? { date: params } : params;
 
-    return client.get<WorkoutLog[]>('/workout/logs', {
+    const response = await client.get<WorkoutLog[]>('/workout/logs', {
       params: queryParams,
     });
+    return response;
   },
 
   /**

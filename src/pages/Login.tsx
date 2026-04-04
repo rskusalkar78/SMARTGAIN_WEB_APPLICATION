@@ -33,7 +33,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 // Login Page Component
 // ============================================================================
 
-const Login: React.FC = () => {
+export const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -116,7 +116,7 @@ const Login: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await login(formData);
+      await login(formData as any);
       
       // Redirect to intended destination on success
       navigate(from, { replace: true });

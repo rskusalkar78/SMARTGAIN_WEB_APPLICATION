@@ -205,6 +205,7 @@ export interface DailyWorkout {
   muscleGroup: string;
   exercises: Exercise[];
   estimatedDuration: number;
+  isRestDay?: boolean;
 }
 
 export interface WorkoutPlan {

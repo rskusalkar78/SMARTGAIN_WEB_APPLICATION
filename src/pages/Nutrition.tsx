@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { nutritionApi } from '@/api/endpoints/nutrition';
 import { dashboardApi } from '@/api/endpoints/dashboard';
 import { MealLogger } from '@/components/features/MealLogger';
@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Dumbbell } from 'lucide-react';
 
 export function Nutrition() {
+  const queryClient = useQueryClient();
   const [today] = useState(new Date().toISOString().split('T')[0]);
   const [localMealLogs, setLocalMealLogs] = useState<MealLog[]>([]);
   const localStorageKey = `smartgain.mealLogs.${today}`;
@@ -138,6 +139,9 @@ export function Nutrition() {
       setLocalMealLogs((prev) => [fallbackMeal, ...prev]);
     } finally {
       setIsLoggingMeal(false);
+      // Invalidate queries so that the Progress page and other components refresh
+      queryClient.invalidateQueries({ queryKey: ['mealLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     }
   };
 

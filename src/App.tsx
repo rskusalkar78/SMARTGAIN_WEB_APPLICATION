@@ -10,17 +10,17 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import PageLoader from "@/components/ui/PageLoader";
 
 // Lazy-loaded routes for code splitting
-const Index = React.lazy(() => import("./pages/Index"));
-const Login = React.lazy(() => import("./pages/Login"));
-const Register = React.lazy(() => import("./pages/Register"));
-const Dashboard = React.lazy(() => import("./pages/Dashboard"));
+const Index = React.lazy(() => import("./pages/Index").then(module => ({ default: module.Index })));
+const Login = React.lazy(() => import("./pages/Login").then(module => ({ default: module.Login })));
+const Register = React.lazy(() => import("./pages/Register").then(module => ({ default: module.Register })));
+const Dashboard = React.lazy(() => import("./pages/Dashboard").then(module => ({ default: module.Dashboard })));
 const Nutrition = React.lazy(() => import("./pages/Nutrition").then(module => ({ default: module.Nutrition })));
 const Workout = React.lazy(() => import("./pages/Workout").then(module => ({ default: module.Workout })));
 const Progress = React.lazy(() => import("./pages/Progress").then(module => ({ default: module.Progress })));
-const MealPlan = React.lazy(() => import("./pages/MealPlan"));
-const WorkoutPlan = React.lazy(() => import("./pages/WorkoutPlan"));
-const Profile = React.lazy(() => import("./pages/Profile"));
-const NotFound = React.lazy(() => import("./pages/NotFound"));
+const MealPlan = React.lazy(() => import("./pages/MealPlan").then(module => ({ default: module.MealPlan })));
+const WorkoutPlan = React.lazy(() => import("./pages/WorkoutPlan").then(module => ({ default: module.WorkoutPlan })));
+const Profile = React.lazy(() => import("./pages/Profile").then(module => ({ default: module.Profile })));
+const NotFound = React.lazy(() => import("./pages/NotFound").then(module => ({ default: module.NotFound })));
 
 // Configure QueryClient with performance-focused defaults
 const queryClient = new QueryClient({

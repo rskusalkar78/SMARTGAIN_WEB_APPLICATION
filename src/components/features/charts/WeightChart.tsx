@@ -18,8 +18,9 @@ interface WeightChartProps {
 }
 
 export function WeightChart({ data, isLoading }: WeightChartProps) {
+    const safeData = Array.isArray(data) ? data : [];
     const chartData = useMemo(() => {
-        const sortedData = [...data].sort((a, b) =>
+        const sortedData = [...safeData].sort((a, b) =>
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
 
@@ -43,7 +44,7 @@ export function WeightChart({ data, isLoading }: WeightChartProps) {
         );
     }
 
-    if (data.length === 0) {
+    if (safeData.length === 0) {
         return (
             <Card>
                 <CardHeader>

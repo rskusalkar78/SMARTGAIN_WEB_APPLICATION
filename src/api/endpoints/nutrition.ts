@@ -38,13 +38,50 @@ export const nutritionApi = {
    * @param params - Date filter or range parameters
    * @returns Array of meal logs
    */
-  getMealLogs: (params?: string | DateRangeParams): Promise<MealLog[]> => {
+  getMealLogs: async (params?: string | DateRangeParams): Promise<MealLog[]> => {
+    const isGuestMode = localStorage.getItem('smartgain_guest_mode') === 'true';
+    if (isGuestMode) {
+      // In guest mode, we retrieve logs from localStorage keys
+      // The keys are formatted as 'smartgain.mealLogs.YYYY-MM-DD'
+      const allLogs: MealLog[] = [];
+      const planStr = localStorage.getItem('smartgain_active_plan');
+      
+      if (planStr) {
+        const planData = JSON.parse(planStr);
+        const startDate = new Date(planData.startDate || new Date());
+        const today = new Date();
+        const diffDays = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Scan from plan start date to today (plus a bit of buffer)
+        for (let i = 0; i <= Math.max(diffDays, 31); i++) {
+          const d = new Date(startDate);
+          d.setDate(startDate.getDate() + i);
+          const dateStr = d.toISOString().split('T')[0];
+          const raw = localStorage.getItem(`smartgain.mealLogs.${dateStr}`);
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) allLogs.push(...parsed);
+            } catch (e) { /* ignore corrupted */ }
+          }
+        }
+      } else {
+        // Fallback: just check today and yesterday if no plan
+        const today = new Date().toISOString().split('T')[0];
+        const rawToday = localStorage.getItem(`smartgain.mealLogs.${today}`);
+        if (rawToday) allLogs.push(...(JSON.parse(rawToday) || []));
+      }
+      
+      return allLogs;
+    }
+
     // Handle legacy single date string or new object params
     const queryParams = typeof params === 'string' ? { date: params } : params;
 
-    return client.get<MealLog[]>('/nutrition/logs', {
+    const response = await client.get<MealLog[]>('/nutrition/logs', {
       params: queryParams,
     });
+    return response;
   },
 
   getMealPlan: async (): Promise<MealPlan> => {

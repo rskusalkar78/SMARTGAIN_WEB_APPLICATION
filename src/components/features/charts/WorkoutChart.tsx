@@ -20,13 +20,14 @@ interface WorkoutChartProps {
 }
 
 export function WorkoutChart({ data, workoutPlan, isLoading }: WorkoutChartProps) {
+    const safeData = Array.isArray(data) ? data : [];
     // Calculate completion rate and weekly breakdown
     const { completionRate, weeklyData } = useMemo(() => {
-        if (!workoutPlan || !workoutPlan.workouts || workoutPlan.workouts.length === 0) {
+        if (!workoutPlan || !(workoutPlan as any).workouts || (workoutPlan as any).workouts.length === 0) {
             // If no plan, just show workout counts per day
             const dailyWorkouts = new Map<string, number>();
 
-            data.forEach(log => {
+            safeData.forEach(log => {
                 const dateKey = format(startOfDay(parseISO(log.timestamp)), 'yyyy-MM-dd');
                 const currentCount = dailyWorkouts.get(dateKey) || 0;
                 dailyWorkouts.set(dateKey, currentCount + 1);
@@ -46,8 +47,8 @@ export function WorkoutChart({ data, workoutPlan, isLoading }: WorkoutChartProps
         }
 
         // Calculate completion rate based on workout plan
-        const plannedWorkouts = workoutPlan.workouts.length;
-        const completedWorkouts = data.length;
+        const plannedWorkouts = (workoutPlan as any).workouts.length;
+        const completedWorkouts = safeData.length;
         const rate = plannedWorkouts > 0 ? Math.round((completedWorkouts / plannedWorkouts) * 100) : 0;
 
         // Group by week for visualization
@@ -64,7 +65,7 @@ export function WorkoutChart({ data, workoutPlan, isLoading }: WorkoutChartProps
         });
 
         // Count completed workouts per week
-        data.forEach(log => {
+        safeData.forEach(log => {
             const logDate = parseISO(log.timestamp);
             const weekStart = startOfWeek(logDate);
             const weekKey = format(weekStart, 'yyyy-MM-dd');
@@ -91,7 +92,7 @@ export function WorkoutChart({ data, workoutPlan, isLoading }: WorkoutChartProps
             .sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
 
         return { completionRate: rate, weeklyData };
-    }, [data, workoutPlan]);
+    }, [safeData, workoutPlan]);
 
     if (isLoading) {
         return (
@@ -107,7 +108,7 @@ export function WorkoutChart({ data, workoutPlan, isLoading }: WorkoutChartProps
         );
     }
 
-    if (data.length === 0) {
+    if (safeData.length === 0) {
         return (
             <Card>
                 <CardHeader>
@@ -133,7 +134,7 @@ export function WorkoutChart({ data, workoutPlan, isLoading }: WorkoutChartProps
             <CardHeader>
                 <CardTitle>Workout Consistency</CardTitle>
                 <CardDescription>
-                    {workoutPlan && workoutPlan.workouts.length > 0 ? (
+                    {workoutPlan && workoutPlan.workouts?.length > 0 ? (
                         <span className="flex items-center gap-2">
                             Overall completion rate: 
                             <span 

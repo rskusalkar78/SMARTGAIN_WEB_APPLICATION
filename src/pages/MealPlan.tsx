@@ -14,7 +14,7 @@ import MealCard from '@/components/features/MealCard';
 import { MealPlan as MealPlanType } from '@/api/types';
 import { format, parseISO } from 'date-fns';
 
-const MealPlan = () => {
+export function MealPlan() {
   // Fetch meal plan from backend (Req 10.1)
   const { data: mealPlan, isLoading, isError, error, refetch } = useQuery<MealPlanType>({
     queryKey: ['mealPlan'],

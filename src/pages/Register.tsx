@@ -47,7 +47,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 // Register Page Component
 // ============================================================================
 
-const Register: React.FC = () => {
+export const Register: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
 

@@ -21,7 +21,7 @@ import { userApi } from '@/api/endpoints';
 
 type View = 'hero' | 'calculator' | 'results';
 
-const Index = () => {
+export function Index() {
   const [currentView, setCurrentView] = useState<View>('hero');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [results, setResults] = useState<CalculationResult | null>(null);
@@ -142,6 +142,7 @@ const Index = () => {
       }
     }
   };
+
 
   const handleReset = () => {
     setCurrentView('hero');

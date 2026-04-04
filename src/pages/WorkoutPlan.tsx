@@ -15,7 +15,7 @@ import { WorkoutPlan as WorkoutPlanType } from '@/api/types';
 import { format, parseISO } from 'date-fns';
 import { toast } from '@/hooks/use-toast';
 
-const WorkoutPlan = () => {
+export function WorkoutPlan() {
   const queryClient = useQueryClient();
 
   // Fetch workout plan from backend (Req 11.1)

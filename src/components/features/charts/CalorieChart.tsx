@@ -21,11 +21,12 @@ interface CalorieChartProps {
 }
 
 export function CalorieChart({ data, calorieTarget, isLoading }: CalorieChartProps) {
+    const safeData = Array.isArray(data) ? data : [];
     const chartData = useMemo(() => {
         // Group meal logs by day
         const dailyCalories = new Map<string, number>();
 
-        data.forEach(log => {
+        safeData.forEach(log => {
             const dateKey = format(startOfDay(parseISO(log.timestamp)), 'yyyy-MM-dd');
             const currentCalories = dailyCalories.get(dateKey) || 0;
             dailyCalories.set(dateKey, currentCalories + log.calories);
@@ -55,7 +56,7 @@ export function CalorieChart({ data, calorieTarget, isLoading }: CalorieChartPro
         );
     }
 
-    if (data.length === 0) {
+    if (safeData.length === 0) {
         return (
             <Card>
                 <CardHeader>

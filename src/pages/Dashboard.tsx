@@ -13,7 +13,7 @@ import TodaySummary from '@/components/dashboard/TodaySummary';
 import QuickActions from '@/components/dashboard/QuickActions';
 import WeeklyProgress from '@/components/dashboard/WeeklyProgress';
 
-const Dashboard = () => {
+export function Dashboard() {
   const { data, isLoading, isError, error, refetch } = useDashboard();
 
   // Loading state with skeleton loaders (Req 4.5)
