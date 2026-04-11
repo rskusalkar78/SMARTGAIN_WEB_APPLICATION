@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  smartgain-backend:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/smartgain
+      - JWT_SECRET=your-production-jwt-secret
+      - CORS_ORIGIN=http://localhost:5173
+    depends_on:
+      - mongo
+    networks:
+      - smartgain-network
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=smartgain
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - smartgain-network
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+
+networks:
+  smartgain-network:
+    driver: bridge

@@ -1,0 +1,49 @@
+# SmartGain 2026 - Robots.txt Configuration
+# SEO optimization for modern search engines and AI crawlers
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+# AI and ML crawlers (2026)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Default for all other bots
+User-agent: *
+Allow: /
+Crawl-delay: 2
+
+# Sitemap location
+Sitemap: https://smartgain.app/sitemap.xml

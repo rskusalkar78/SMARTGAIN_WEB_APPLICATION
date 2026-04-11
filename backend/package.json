@@ -1,0 +1,46 @@
+{
+  "name": "smartgain-backend",
+  "version": "1.0.0",
+  "description": "SmartGain Backend - Intelligent Weight Gain Planning API",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:pbt": "vitest run --reporter=verbose src/tests/properties/",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
+  },
+  "keywords": [
+    "weight-gain",
+    "nutrition",
+    "fitness",
+    "api",
+    "nodejs",
+    "express",
+    "mongodb"
+  ],
+  "author": "SmartGain Development Team",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.3",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.11.0",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5",
+    "dotenv": "^16.3.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "vitest": "^1.0.4",
+    "fast-check": "^3.15.0",
+    "supertest": "^6.3.3",
+    "eslint": "^8.56.0"
+  }
+}

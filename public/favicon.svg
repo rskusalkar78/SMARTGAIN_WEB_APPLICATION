@@ -1,0 +1,62 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" fill="#1a1a1a"/>
+  <!-- Ultra-heavy dumbbell with horizontal incline -->
+  <g transform="translate(0, 8) rotate(12 16 8)">
+    <!-- Left massive weight plate -->
+    <rect x="0" y="0" width="8" height="16" rx="4" fill="#ff8c42"/>
+    <rect x="1" y="1" width="6" height="14" rx="3" fill="#ff9f5a"/>
+    <rect x="2" y="2" width="4" height="12" rx="2" fill="#ffb366"/>
+    <rect x="2.5" y="2.5" width="3" height="11" rx="1.5" fill="#ffc078"/>
+    
+    <!-- Left heavy connector -->
+    <rect x="8" y="5" width="4" height="6" rx="2" fill="#ff8c42"/>
+    <rect x="8.5" y="5.5" width="3" height="5" rx="1.5" fill="#ff9f5a"/>
+    
+    <!-- Thick center bar -->
+    <rect x="12" y="6" width="8" height="4" rx="2" fill="#ff8c42"/>
+    <rect x="12" y="6.5" width="8" height="3" rx="1.5" fill="#ff9f5a"/>
+    <rect x="12" y="7" width="8" height="2" rx="1" fill="#ffb366"/>
+    
+    <!-- Right heavy connector -->
+    <rect x="20" y="5" width="4" height="6" rx="2" fill="#ff8c42"/>
+    <rect x="20.5" y="5.5" width="3" height="5" rx="1.5" fill="#ff9f5a"/>
+    
+    <!-- Right massive weight plate -->
+    <rect x="24" y="0" width="8" height="16" rx="4" fill="#ff8c42"/>
+    <rect x="25" y="1" width="6" height="14" rx="3" fill="#ff9f5a"/>
+    <rect x="26" y="2" width="4" height="12" rx="2" fill="#ffb366"/>
+    <rect x="26.5" y="2.5" width="3" height="11" rx="1.5" fill="#ffc078"/>
+    
+    <!-- Heavy-duty bolts and details -->
+    <circle cx="4" cy="4" r="1.2" fill="#d35400"/>
+    <circle cx="4" cy="8" r="1.2" fill="#d35400"/>
+    <circle cx="4" cy="12" r="1.2" fill="#d35400"/>
+    
+    <circle cx="28" cy="4" r="1.2" fill="#d35400"/>
+    <circle cx="28" cy="8" r="1.2" fill="#d35400"/>
+    <circle cx="28" cy="12" r="1.2" fill="#d35400"/>
+    
+    <!-- Industrial grip pattern -->
+    <rect x="13" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    <rect x="13.8" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    <rect x="14.6" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    <rect x="15.4" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    <rect x="16.2" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    <rect x="17" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    <rect x="17.8" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    <rect x="18.6" y="6.5" width="0.3" height="3" fill="#d35400"/>
+    
+    <!-- Weight markings for heavy plates -->
+    <text x="4" y="9" text-anchor="middle" fill="#bf4f36" font-size="2.5" font-weight="bold">100</text>
+    <text x="28" y="9" text-anchor="middle" fill="#bf4f36" font-size="2.5" font-weight="bold">100</text>
+    
+    <!-- Additional strength indicators -->
+    <rect x="1" y="7" width="6" height="0.5" fill="#d35400"/>
+    <rect x="1" y="8.5" width="6" height="0.5" fill="#d35400"/>
+    <rect x="25" y="7" width="6" height="0.5" fill="#d35400"/>
+    <rect x="25" y="8.5" width="6" height="0.5" fill="#d35400"/>
+    
+    <!-- Shadow effect for depth -->
+    <ellipse cx="16" cy="18" rx="14" ry="2" fill="#000000" opacity="0.3"/>
+  </g>
+</svg>
