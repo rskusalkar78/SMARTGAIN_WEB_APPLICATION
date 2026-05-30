@@ -7,6 +7,7 @@ import { Menu, X, Home, TrendingUp, Utensils, Dumbbell, User } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -99,6 +100,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           </div>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <span className="hidden text-sm text-muted-foreground sm:inline-block">
               {user?.name}
             </span>

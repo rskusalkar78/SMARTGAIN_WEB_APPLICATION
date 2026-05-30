@@ -22,7 +22,8 @@ const WorkoutPlan = React.lazy(() => import("./pages/WorkoutPlan").then(module =
 const Profile = React.lazy(() => import("./pages/Profile").then(module => ({ default: module.Profile })));
 const NotFound = React.lazy(() => import("./pages/NotFound").then(module => ({ default: module.NotFound })));
 
-// Configure QueryClient with performance-focused defaults
+import { ThemeProvider } from "next-themes";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -36,8 +37,9 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -96,8 +98,9 @@ const App = () => (
             </Suspense>
           </BrowserRouter>
         </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </ErrorBoundary>
 );
 
